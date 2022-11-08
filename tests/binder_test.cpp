@@ -50,6 +50,7 @@
 #include <android-base/scopeguard.h>
 #include <android-base/stringprintf.h>
 #include <android-base/strings.h>
+#include <android-base/test_utils.h>
 #include <android/multinetwork.h>
 #include <binder/IPCThreadState.h>
 #include <bpf/BpfMap.h>
@@ -3515,23 +3516,6 @@ void NetdBinderTest::createVpnAndAppDefaultNetworkWithUid(
 
 namespace {
 
-class ScopedUidChange {
-  public:
-    explicit ScopedUidChange(uid_t uid) : mInputUid(uid) {
-        mStoredUid = geteuid();
-        if (mInputUid == mStoredUid) return;
-        EXPECT_TRUE(seteuid(uid) == 0);
-    }
-    ~ScopedUidChange() {
-        if (mInputUid == mStoredUid) return;
-        EXPECT_TRUE(seteuid(mStoredUid) == 0);
-    }
-
-  private:
-    uid_t mInputUid;
-    uid_t mStoredUid;
-};
-
 void clearQueue(int tunFd) {
     char buf[4096];
     int ret;
@@ -5188,6 +5172,7 @@ std::cv_status MDnsBinderTest::getServiceAddress(int operationId,
 }
 
 TEST_F(MDnsBinderTest, EventListenerTest) {
+    SKIP_WITH_HWASAN;  // TODO(b/253513842): Re-enable.
     // Start the Binder thread pool.
     android::ProcessState::self()->startThreadPool();
 
