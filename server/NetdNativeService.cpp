@@ -689,6 +689,16 @@ binder::Status NetdNativeService::ipSecRemoveTunnelInterface(const std::string& 
     return asBinderStatus(gCtls->xfrmCtrl.ipSecRemoveTunnelInterface(deviceName));
 }
 
+binder::Status NetdNativeService::ipSecMigrate(const IpSecMigrateInfoParcel& migrateInfo) {
+    // Necessary locking done in IpSecService and kernel
+    ENFORCE_NETWORK_STACK_PERMISSIONS();
+    return asBinderStatus(gCtls->xfrmCtrl.ipSecMigrate(
+            migrateInfo.requestId, migrateInfo.selAddrFamily, migrateInfo.direction,
+            migrateInfo.oldSourceAddress, migrateInfo.oldDestinationAddress,
+            migrateInfo.newSourceAddress, migrateInfo.newDestinationAddress,
+            migrateInfo.interfaceId));
+}
+
 binder::Status NetdNativeService::setIPv6AddrGenMode(const std::string& ifName,
                                                      int32_t mode) {
     ENFORCE_NETWORK_STACK_PERMISSIONS();
@@ -1235,6 +1245,12 @@ binder::Status NetdNativeService::tetherOffloadGetAndClearStats(
     // deprecated
     NETD_LOCKING_RPC(gCtls->tetherCtrl.lock, PERM_NETWORK_STACK, PERM_MAINLINE_NETWORK_STACK);
     return binder::Status::fromExceptionCode(binder::Status::EX_UNSUPPORTED_OPERATION);
+}
+
+binder::Status NetdNativeService::setNetworkAllowlist(
+        const std::vector<NativeUidRangeConfig>& settings) {
+    ENFORCE_NETWORK_STACK_PERMISSIONS();
+    return statusFromErrcode(gCtls->netCtrl.setNetworkAllowlist(settings));
 }
 
 }  // namespace net
